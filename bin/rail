@@ -6,7 +6,6 @@ print "What is the app name?\n> "
 app = gets&.strip
 
 if app.nil? || app.empty?
-  puts "❌ App name cannot be empty."
   exit 1
 end
 
@@ -20,7 +19,6 @@ command =
   when "n", "no"
     ["rails", "new", app]
   else
-    puts "❌ Invalid choice. Please enter Y or N."
     exit 1
   end
 
@@ -31,32 +29,26 @@ print "\nContinue? [Y/n] "
 confirm = gets&.strip.to_s.downcase
 
 unless ["", "y", "yes"].include?(confirm)
-  puts "Cancelled."
   exit
 end
 
-print "\n🚀 Creating Rails app..."
 success = system(*command, out: File::NULL, err: File::NULL)
-puts success ? " ✅" : " ❌"
+puts success ? " ☑" : " 𐄂"
 
 unless success
-  puts "Failed to create the Rails app."
   exit 1
 end
 
-puts "✅ Rails app '#{app}' created successfully."
+puts "☑ '#{app}' created."
 
 Dir.chdir(app) do
-  print "\n📦 Staging files..."
   success = system("git", "add", ".", out: File::NULL, err: File::NULL)
-  puts success ? " ✅" : " ❌"
+  puts success ? " ☑" : " 𐄂"
 
   unless success
-    puts "git add failed."
     exit 1
   end
 
-  print "📝 Creating initial commit..."
   success = system(
     "git",
     "commit",
@@ -65,10 +57,9 @@ Dir.chdir(app) do
     out: File::NULL,
     err: File::NULL
   )
-  puts success ? " ✅" : " ❌"
+  puts success ? " ☑" : " 𐄂"
 
   unless success
-    puts "git commit failed."
     exit 1
   end
 
@@ -90,7 +81,6 @@ Dir.chdir(app) do
       remote = gets&.strip
 
       if remote.nil? || remote.empty?
-        puts "❌ No remote provided."
         exit 1
       end
 
@@ -104,10 +94,9 @@ Dir.chdir(app) do
         out: File::NULL,
         err: File::NULL
       )
-      puts success ? " ✅" : " ❌"
+      puts success ? " ☑" : " 𐄂"
 
       unless success
-        puts "Failed to add remote."
         exit 1
       end
     end
@@ -125,10 +114,9 @@ Dir.chdir(app) do
       out: File::NULL,
       err: File::NULL
     )
-    puts success ? " ✅" : " ❌"
+    puts success ? " ☑" : " 𐄂"
 
     unless success
-      puts "Push failed."
     end
   end
 
@@ -150,7 +138,7 @@ Dir.chdir(app) do
       stdout.each_line do |line|
         unless started
           if (url = line[%r{https?://\S+}])
-            puts "✅ Started on #{url}"
+            puts "☑ Started on #{url}"
             started = true
           end
         end
