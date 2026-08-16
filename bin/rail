@@ -1,152 +1,16 @@
 #!/usr/bin/env ruby
 
-require "open3"
-
 print "What is the app name?\n> "
 app = gets&.strip
-
-if app.nil? || app.empty?
-  exit 1
-end
 
 print "\nDo you want to use Tailwind CSS? [Y/n] "
 use_tailwind = gets&.strip.to_s.downcase
 
-command =
-  case use_tailwind
-  when "", "y", "yes"
-    ["rails", "new", app, "--css", "tailwind"]
-  when "n", "no"
-    ["rails", "new", app]
-  else
-    exit 1
-  end
-
-puts "\nAbout to run:"
-puts "  #{command.join(' ')}"
-
-print "\nContinue? [Y/n] "
-confirm = gets&.strip.to_s.downcase
-
-unless ["", "y", "yes"].include?(confirm)
-  exit
-end
-
-success = system(*command, out: File::NULL, err: File::NULL)
-puts success ? " ☑" : " 𐄂"
-
-unless success
+case use_tailwind
+when "", "y", "yes"
+  system("rails", "new", app, "--css", "tailwind")
+when "n", "no"
+  system("rails", "new", app)
+else
   exit 1
 end
-
-puts "☑ '#{app}' created."
-
-Dir.chdir(app) do
-  success = system("git", "add", ".", out: File::NULL, err: File::NULL)
-  puts success ? " ☑" : " 𐄂"
-
-  unless success
-    exit 1
-  end
-
-  success = system(
-    "git",
-    "commit",
-    "-m",
-    "Initial commit By Rail",
-    out: File::NULL,
-    err: File::NULL
-  )
-  puts success ? " ☑" : " 𐄂"
-
-  unless success
-    exit 1
-  end
-
-  print "\nPush to GitHub? [y/N] "
-  push = gets&.strip.to_s.downcase
-
-  if ["y", "yes"].include?(push)
-    has_remote = system(
-      "git",
-      "remote",
-      "get-url",
-      "origin",
-      out: File::NULL,
-      err: File::NULL
-    )
-
-    unless has_remote
-      print "GitHub repository URL: "
-      remote = gets&.strip
-
-      if remote.nil? || remote.empty?
-        exit 1
-      end
-
-      print "🔗 Adding remote..."
-      success = system(
-        "git",
-        "remote",
-        "add",
-        "origin",
-        remote,
-        out: File::NULL,
-        err: File::NULL
-      )
-      puts success ? " ☑" : " 𐄂"
-
-      unless success
-        exit 1
-      end
-    end
-
-    branch = `git branch --show-current`.strip
-    branch = "main" if branch.empty?
-
-    print "⬆️  Pushing to GitHub..."
-    success = system(
-      "git",
-      "push",
-      "-u",
-      "origin",
-      branch,
-      out: File::NULL,
-      err: File::NULL
-    )
-    puts success ? " ☑" : " 𐄂"
-
-    unless success
-    end
-  end
-
-  print "\nRun the project now? [Y/n] "
-  run = gets&.strip.to_s.downcase
-
-  if ["", "y", "yes"].include?(run)
-    puts "\n🚀 Starting Rails..."
-
-    Open3.popen2e("bin/dev") do |_stdin, stdout, wait_thread|
-      pid = wait_thread.pid
-      started = false
-
-      trap("INT") do
-        puts "\n🛑 Stopping Rails..."
-        Process.kill("INT", pid) rescue nil
-      end
-
-      stdout.each_line do |line|
-        unless started
-          if (url = line[%r{https?://\S+}])
-            puts "☑ Started on #{url}"
-            started = true
-          end
-        end
-      end
-
-      wait_thread.value
-    end
-  end
-end
-
-puts "\n🎉 All done!"
